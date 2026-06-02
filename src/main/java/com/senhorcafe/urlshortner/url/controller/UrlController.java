@@ -1,6 +1,7 @@
 package com.senhorcafe.urlshortner.url.controller;
 
 import com.senhorcafe.urlshortner.url.service.UrlService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,8 +19,14 @@ public class UrlController {
         return urlService.saveUrl(url);
     }
 
-    @GetMapping("shortUrl")
-    public String get()  {
-        return urlService.getUrl();
+    @GetMapping("shortUrl/{code}")
+    public ResponseEntity<Void> get(@PathVariable String code)  {
+        return urlService.redirect(code);
+    }
+
+    @GetMapping("getMap")
+    public String getAllUrls() {
+        return this.urlService.getUrl();
+
     }
 }
