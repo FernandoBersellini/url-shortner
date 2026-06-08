@@ -31,3 +31,4 @@ The package convention is feature-first: `com.senhorcafe.urlshortner.url.<layer>
 - Lombok is available (annotation processing is configured in `pom.xml`) but not yet used in the code.
 - `spring-boot-docker-compose` is on the runtime classpath and `compose.yaml` exists but defines no services yet — Spring will look for it on startup.
 - `baseShortnedUrl` and the redirect targets are hardcoded in `UrlService`; the service is still mock-quality and not production-ready.
+- the article found in this page is a high quality breakdown of a url shortner: https://bytebytego.com/courses/system-design-interview/design-a-url-shortener

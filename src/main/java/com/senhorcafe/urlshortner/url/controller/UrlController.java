@@ -1,6 +1,9 @@
 package com.senhorcafe.urlshortner.url.controller;
 
+import com.senhorcafe.urlshortner.url.dto.ShortenRequest;
+import com.senhorcafe.urlshortner.url.dto.ShortenResponse;
 import com.senhorcafe.urlshortner.url.service.UrlService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,18 +18,13 @@ public class UrlController {
     }
 
     @PostMapping("data/shorten")
-    public String post(@RequestParam String url) {
-        return urlService.saveUrl(url);
+    public ShortenResponse post(@Valid @RequestBody ShortenRequest shortenRequest) {
+        return new ShortenResponse(urlService.saveUrl(shortenRequest.url()));
     }
 
-    @GetMapping("shortUrl/{code}")
-    public ResponseEntity<Void> get(@PathVariable String code)  {
-        return urlService.redirect(code);
-    }
-
-    @GetMapping("getMap")
-    public String getAllUrls() {
-        return this.urlService.getUrl();
-
+    @GetMapping("shortUrl/{shortCode}")
+    public ResponseEntity<Void> get(@PathVariable String shortCode)  {
+        return urlService.redirect(shortCode);
     }
 }
+
