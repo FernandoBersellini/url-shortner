@@ -1,29 +1,24 @@
 package com.senhorcafe.urlshortner.url.service;
 
 import com.senhorcafe.urlshortner.config.AppProperties;
+import com.senhorcafe.urlshortner.url.entity.UrlMapping;
+import com.senhorcafe.urlshortner.url.repository.UrlMappingRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class UrlService {
     private static final String BASE62 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
     private final String baseShortnedUrl;
+    private final UrlMappingRepository urlMappingRepository;
 
-    private final HashMap<String, String> url;
-
-    // Source of unique IDs; each new URL gets the next value, encoded to base62.
-    private final AtomicLong counter = new AtomicLong(1);
-
-    public UrlService(AppProperties appProperties) {
+    public UrlService(AppProperties appProperties, UrlMappingRepository urlMappingRepository) {
         this.baseShortnedUrl = appProperties.baseUrl();
-        this.url = new HashMap<>();
+        this.urlMappingRepository = urlMappingRepository;
     }
 
     public String saveUrl(String urlToSave) {
@@ -31,10 +26,18 @@ public class UrlService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A URL to shorten is required");
         }
 
-        String shortCode = encode(counter.getAndIncrement());
-        String fullShortnedUrl = baseShortnedUrl + shortCode;
-        url.put(shortCode, urlToSave);
-        return fullShortnedUrl;
+        // Persist first so the DB assigns the unique id, then derive the short
+        // code from it. Using the DB id (instead of an in-memory counter) keeps
+        // codes unique and monotonic across application restarts.
+        UrlMapping mapping = new UrlMapping();
+        mapping.setLongUrl(urlToSave);
+        mapping = urlMappingRepository.save(mapping);
+
+        String shortCode = encode(mapping.getId());
+        mapping.setShortCode(shortCode);
+        urlMappingRepository.save(mapping);
+
+        return baseShortnedUrl + shortCode;
     }
 
     public ResponseEntity<Void> redirect(String urlCode) {
@@ -42,13 +45,13 @@ public class UrlService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A short code is required");
         }
 
-        String originalUrl = url.get(urlCode);
-        if (originalUrl == null) {
+        UrlMapping mapping = urlMappingRepository.findByShortCode(urlCode);
+        if (mapping == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No URL found for short code '" + urlCode + "'");
         }
 
         return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(originalUrl))
+                .location(URI.create(mapping.getLongUrl()))
                 .build();
     }
 
