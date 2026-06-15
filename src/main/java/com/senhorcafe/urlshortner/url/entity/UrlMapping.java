@@ -1,5 +1,6 @@
 package com.senhorcafe.urlshortner.url.entity;
 
+import com.senhorcafe.urlshortner.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -27,6 +28,7 @@ public class UrlMapping {
     @Column(name = "expires_at", nullable = true)
     private LocalDateTime expiresAt;
 
-    @Column(name = "owner_id", nullable = true)
-    private Integer ownerId;
+    @JoinColumn(name = "user_id")
+    @OneToOne(fetch = FetchType.LAZY)
+    private User user;
 }

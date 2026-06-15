@@ -9,5 +9,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param baseUrl base of the generated short URLs; the short code is appended to it.
  */
 @ConfigurationProperties(prefix = "app")
-public record AppProperties(String baseUrl) {
+public record AppProperties(String baseUrl, JwtProperties jwt) {
+    public record JwtProperties(String secret, long expirationMs) {}
 }

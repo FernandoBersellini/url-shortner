@@ -4,10 +4,12 @@ import com.senhorcafe.urlshortner.config.AppProperties;
 import com.senhorcafe.urlshortner.config.CacheConfig;
 import com.senhorcafe.urlshortner.url.entity.UrlMapping;
 import com.senhorcafe.urlshortner.url.repository.UrlMappingRepository;
+import com.senhorcafe.urlshortner.user.entity.User;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -30,11 +32,15 @@ public class UrlService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A URL to shorten is required");
         }
 
+        User owner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+
         // Persist first so the DB assigns the unique id, then derive the short
         // code from it. Using the DB id (instead of an in-memory counter) keeps
         // codes unique and monotonic across application restarts.
         UrlMapping mapping = new UrlMapping();
         mapping.setLongUrl(urlToSave);
+        mapping.setUser(owner);
         mapping = urlMappingRepository.save(mapping);
 
         String shortCode = encode(mapping.getId());

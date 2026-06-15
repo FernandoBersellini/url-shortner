@@ -1,0 +1,3 @@
+ALTER TABLE url
+    DROP COLUMN IF EXISTS owner_id,
+    ADD COLUMN user_id BIGINT REFERENCES users(user_id) ON DELETE SET NULL;
